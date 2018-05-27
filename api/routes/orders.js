@@ -25,17 +25,19 @@ router.route("/")
 
 router.route("/:id")
   .get((req, res, next) => {
+    const { id } = req.params;
     res.status(200)
       .json({
         message: "Order details",
-        id: req.params.id
+        id
       });
   })
   .delete((req, res, next) => {
+    const { id } = req.params;
     res.status(201)
       .json({
         message: "Order was deleted",
-        id: req.params.id
+        id
       });
   });
 
