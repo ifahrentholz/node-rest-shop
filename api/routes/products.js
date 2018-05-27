@@ -6,6 +6,7 @@ const Product = require("../models/product");
 
 router.route("/")
   .get((req, res, next) => {
+    const host = req.get("host");
     Product.find()
       .select("name price _id")
       .exec()
@@ -19,12 +20,12 @@ router.route("/")
               price: price,
               id: _id,
               request: {
-                url: `http://localhost:3000/products/${_id}`
+                url: `http://${host}/products/${_id}`
               }
             }
           }),
           request: {
-            url: `http://localhost:3000/products`
+            url: `http://${host}/products`
           }
         });
       })
@@ -37,6 +38,7 @@ router.route("/")
 
 
   .post((req, res, next) => {
+    const host = req.get("host");
     const { name, price } = req.body;
     
     const product = new Product({
@@ -54,7 +56,7 @@ router.route("/")
             price,
             id: _id,
             request: {
-              url: `http://localhost:3000/products/${_id}`
+              url: `http://${host}/products/${_id}`
             }
           }
         });
@@ -70,6 +72,7 @@ router.route("/")
 // BY ID
 router.route("/:id")
   .get((req, res, next) => {
+    const host = req.get("host");
     const id = req.params.id;
     
     Product.findById(id)
@@ -94,6 +97,7 @@ router.route("/:id")
 
 
   .patch((req, res, next) => {
+    const host = req.get("host");
     const id = req.params.id;
     const { name, price } = req.body;
     const updateOps = {};
@@ -108,7 +112,7 @@ router.route("/:id")
         res.status(200).json({
           result,
           request: {
-            "url": `http://localhost:3000/products/${id}`
+            "url": `http://${host}/products/${id}`
           }
         });
       })
@@ -119,6 +123,7 @@ router.route("/:id")
 
 
   .delete((req, res, next) => {
+    const host = req.get("host");
     const id = req.params.id;
     Product.remove({
       _id: id
@@ -128,7 +133,7 @@ router.route("/:id")
       res.status(200).json({
         message: "Product deleted",
         request: {
-          url: `http://localhost:3000/products`
+          url: `http://${host}/products`
         }
       });
     })
