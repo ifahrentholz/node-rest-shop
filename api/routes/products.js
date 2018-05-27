@@ -7,9 +7,26 @@ const Product = require("../models/product");
 router.route("/")
   .get((req, res, next) => {
     Product.find()
+      .select("name price _id")
       .exec()
       .then(docs => {
-        res.status(200).json(docs)
+        res.status(200).json({
+          count: docs.length,
+          products: docs.map(doc => {
+            const {name, price, _id} = doc;
+            return {
+              name: name,
+              price: price,
+              id: _id,
+              request: {
+                url: `http://localhost:3000/products/${_id}`
+              }
+            }
+          }),
+          request: {
+            url: `http://localhost:3000/products`
+          }
+        });
       })
       .catch(error => {
         res.status(500).json({
@@ -17,6 +34,8 @@ router.route("/")
         });
       });
   })
+
+
   .post((req, res, next) => {
     const { name, price } = req.body;
     
@@ -26,30 +45,35 @@ router.route("/")
       price
     });
 
-    product
-      .save()
+    product.save()
       .then(result => {
-        res.status(201)
-          .json({
-            message: "handle product requests POST",
-            createProduct: product
-          });
-    })
-    .catch(error => {
-      res.status(500).json({
-        error
+        const {name, price, _id} = result;
+        res.status(201).json({
+          createProduct: {
+            name,
+            price,
+            id: _id,
+            request: {
+              url: `http://localhost:3000/products/${_id}`
+            }
+          }
+        });
+      })
+      .catch(error => {
+        res.status(500).json({
+          error
+        });
       });
-    });
-
-
   });
   
 
+// BY ID
 router.route("/:id")
   .get((req, res, next) => {
     const id = req.params.id;
     
     Product.findById(id)
+      .select("name price _id")
       .exec()
       .then(doc => {
         if(doc) {
@@ -67,6 +91,8 @@ router.route("/:id")
       });
 
   })
+
+
   .patch((req, res, next) => {
     const id = req.params.id;
     const { name, price } = req.body;
@@ -75,32 +101,43 @@ router.route("/:id")
     for(const ops of req.body) {
       updateOps[ops.propName] = ops.value;
     }
-
-    console.log(updateOps);
     
     Product.update({ _id: id}, {$set: updateOps })
       .exec()
       .then(result => {
-        res.status(200).json({result});
+        res.status(200).json({
+          result,
+          request: {
+            "url": `http://localhost:3000/products/${id}`
+          }
+        });
       })
       .catch(error => {
         res.status(500).json({error});
       });
   })
+
+
   .delete((req, res, next) => {
     const id = req.params.id;
     Product.remove({
       _id: id
     })
-      .exec()
-      .then(doc => {
-        res.status(200).json(doc);
-      })
-      .catch(error => {
-        res.status(500).json({
-          error
-        });
+    .exec()
+    .then(doc => {
+      res.status(200).json({
+        message: "Product deleted",
+        request: {
+          url: `http://localhost:3000/products`
+        }
       });
+    })
+    .catch(error => {
+      res.status(500).json({
+        error
+      });
+    });
   });
+
 
 module.exports = router;
