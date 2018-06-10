@@ -10,6 +10,7 @@ router.route("/")
     const host = req.get("host");
     Order.find()
       .select('product quanity _id')
+      .populate('product')
       .exec()
       .then(docs => {
         res.status(200).json({
@@ -82,8 +83,9 @@ router.route("/:id")
   .get((req, res, next) => {
     const host = req.get("host");
     const { id } = req.params;
-    
+
     Order.findById(id)
+      .populate('product')
       .exec()
       .then(order => {
         if(!order) {
